@@ -1,0 +1,139 @@
+.conn-root {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 2rem;
+}
+
+.conn-header h2 {
+  font-size: 1.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.conn-lead {
+  color: var(--text-light, #6b7280);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.conn-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  justify-content: center;
+  color: var(--text-light, #6b7280);
+}
+
+.conn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .conn-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.conn-block {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  background: #fafafa;
+}
+
+.conn-block h3 {
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+.conn-hint {
+  font-size: 0.78rem;
+  color: var(--text-light, #6b7280);
+  margin-bottom: 0.85rem;
+  line-height: 1.35;
+}
+
+.conn-block label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.65rem;
+  color: var(--text, #1f2937);
+}
+
+.conn-block input {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.conn-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .conn-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.conn-runtime {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+}
+
+.conn-runtime pre {
+  margin-top: 0.35rem;
+  padding: 0.5rem;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid var(--border, #e5e7eb);
+  overflow: auto;
+  font-size: 0.72rem;
+}
+
+.conn-inactive {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-light, #6b7280);
+}
+
+.conn-banner {
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+}
+
+.conn-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.conn-success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.conn-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  align-items: center;
+}
+
+.conn-actions .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
