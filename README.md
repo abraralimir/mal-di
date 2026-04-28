@@ -164,7 +164,7 @@ Create a new **Web Service** in Render:
 - **Build Command**: `pip install -r requirements.txt`
 - **Start Command**: `uvicorn app:app --host 0.0.0.0 --port $PORT`
 
-This repo includes `backend/runtime.txt` to avoid Render defaulting to Python 3.14.
+This repo includes `.python-version` to avoid Render defaulting to Python 3.14.
 
 Set Render environment variables:
 
