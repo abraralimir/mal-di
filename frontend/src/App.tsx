@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Upload, Send, FileText, Link2, Globe } from 'lucide-react';
+import { Upload, Send, FileText, Globe } from 'lucide-react';
 import DocumentUpload from './components/DocumentUpload';
 import DocumentList from './components/DocumentList';
 import ChatInterface from './components/ChatInterface';
-import ConnectionsSettings from './components/ConnectionsSettings';
 import { API_BASE_URL } from './apiConfig';
 import './styles/App.css';
 import { t } from './i18n';
@@ -151,13 +150,6 @@ function App() {
             <Send size={20} />
             <span>{t(language, 'nav.qa')}</span>
           </button>
-          <button
-            className={`nav-button ${activeTab === 'connections' ? 'active' : ''}`}
-            onClick={() => setActiveTab('connections')}
-          >
-            <Link2 size={20} />
-            <span>{t(language, 'nav.connections')}</span>
-          </button>
         </nav>
 
         <main className="main-content">
@@ -186,16 +178,6 @@ function App() {
               selectedDoc={selectedDoc}
               documents={documents}
               onSelectDoc={setSelectedDoc}
-              language={language}
-            />
-          )}
-
-          {activeTab === 'connections' && (
-            <ConnectionsSettings
-              onSaved={() => {
-                checkHealth();
-                loadDocuments();
-              }}
               language={language}
             />
           )}
