@@ -155,4 +155,21 @@ Set:
 
 The UI will call the backend directly using `VITE_API_URL`. (The backend already allows CORS.)
 
+## Deploy the API on Render (free tier)
+
+Create a new **Web Service** in Render:
+
+- **Repository**: this repo
+- **Root Directory**: `backend`
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `uvicorn app:app --host 0.0.0.0 --port $PORT`
+
+This repo includes `backend/runtime.txt` to avoid Render defaulting to Python 3.14.
+
+Set Render environment variables:
+
+- `GROQ_API_KEY` (required)
+- `GROQ_MODEL` (optional)
+- `OCR_LANGUAGE` (optional, e.g. `ar,en`)
+
 # mal-di

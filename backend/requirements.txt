@@ -1,0 +1,29 @@
+# NOTE: Render deploy convenience
+# If your Render service Root Directory is set to `backend/`,
+# Render expects `requirements.txt` to be in that directory.
+#
+# Keep this file in sync with the repo-root `requirements.txt`.
+
+# Core API
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+
+# Document text: PyMuPDF (native PDF) + RapidOCR-ONNX (images / scans)
+pymupdf>=1.24.0,<2
+rapidocr-onnxruntime>=1.3.0
+opencv-python-headless>=4.8.0,<4.10
+pillow==10.1.0
+numpy==1.24.3
+
+# Q&A (cloud)
+requests>=2.32.0,<3
+urllib3>=2.0.0,<3
+charset-normalizer>=3.3.0,<4
+
+# Config
+python-dotenv==1.0.0
+pyyaml==6.0.1
+
