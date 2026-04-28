@@ -3,8 +3,9 @@ import axios from 'axios';
 import { Send, Loader, Copy, Check } from 'lucide-react';
 import '../styles/ChatInterface.css';
 import { API_BASE_URL } from '../apiConfig';
+import { t, type Lang } from '../i18n';
 
-function ChatInterface({ selectedDoc, documents, onSelectDoc }) {
+function ChatInterface({ selectedDoc, documents, onSelectDoc, language }: { selectedDoc: string | null; documents: any[]; onSelectDoc: (id: string | null) => void; language: Lang }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,7 @@ function ChatInterface({ selectedDoc, documents, onSelectDoc }) {
         question: userMessage,
         document_id: selectedDoc || null,
         use_rag: hasIndexedDocs,
+        preferred_language: language,
       });
 
       setMessages(prev => [...prev, {
@@ -52,7 +54,7 @@ function ChatInterface({ selectedDoc, documents, onSelectDoc }) {
     } catch (err) {
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
-        text: 'We could not get an answer. Please try again in a moment.',
+        text: t(language, 'qa.errorAnswer'),
         sender: 'error'
       }]);
     } finally {
@@ -71,16 +73,16 @@ function ChatInterface({ selectedDoc, documents, onSelectDoc }) {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h2>Q&amp;A</h2>
+        <h2>{t(language, 'qa.title')}</h2>
         <div className="doc-selector">
-          <label>Answer using:</label>
+          <label>{t(language, 'qa.answerUsing')}</label>
           <select
             value={selectedDoc || 'all'}
             onChange={(e) => onSelectDoc(e.target.value === 'all' ? null : e.target.value)}
             disabled={!hasDocs}
             title={!hasDocs ? 'Upload a document first' : ''}
           >
-            <option value="all">All documents</option>
+            <option value="all">{t(language, 'qa.allDocs')}</option>
             {documents.map((doc) => (
               <option key={doc.document_id} value={doc.document_id}>
                 {doc.name}
@@ -92,18 +94,18 @@ function ChatInterface({ selectedDoc, documents, onSelectDoc }) {
 
       {!hasDocs && (
         <div className="chat-rag-hint">
-          Upload a document and wait until it is ready, then ask your question here.
+          {t(language, 'qa.noDocsHint')}
         </div>
       )}
 
       <div className="chat-messages">
         {messages.length === 0 && (
           <div className="chat-welcome">
-            <h3>Questions</h3>
+            <h3>{t(language, 'qa.welcomeTitle')}</h3>
             {hasDocs ? (
-              <p>Type your question below.</p>
+              <p>{t(language, 'qa.welcomeHasDocs')}</p>
             ) : (
-              <p>Upload a document first, then return here.</p>
+              <p>{t(language, 'qa.welcomeNoDocs')}</p>
             )}
           </div>
         )}
@@ -148,7 +150,7 @@ function ChatInterface({ selectedDoc, documents, onSelectDoc }) {
           <div className="message message-loading">
             <div className="loading-indicator">
               <Loader className="spinner" size={20} />
-              <span>Thinking...</span>
+              <span>{t(language, 'qa.thinking')}</span>
             </div>
           </div>
         )}
@@ -161,8 +163,8 @@ function ChatInterface({ selectedDoc, documents, onSelectDoc }) {
           type="text"
           placeholder={
             hasDocs
-              ? 'Ask about your documents…'
-              : 'Ask anything (upload files later for document Q&A)…'
+              ? t(language, 'qa.placeholderHasDocs')
+              : t(language, 'qa.placeholderNoDocs')
           }
           value={input}
           onChange={(e) => setInput(e.target.value)}

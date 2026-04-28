@@ -1,21 +1,22 @@
 import React from 'react';
 import { Trash2, FileText, Calendar } from 'lucide-react';
 import '../styles/DocumentList.css';
+import { t, type Lang } from '../i18n';
 
-function DocumentList({ documents, onDelete, onSelect }) {
+function DocumentList({ documents, onDelete, onSelect, language }: { documents: any[]; onDelete: (id: string) => void; onSelect: (doc: any) => void; language: Lang }) {
   if (documents.length === 0) {
     return (
       <div className="document-list-empty">
         <FileText size={48} />
-        <h2>No documents yet</h2>
-        <p>Upload a document to get started</p>
+        <h2>{t(language, 'docs.emptyTitle')}</h2>
+        <p>{t(language, 'docs.emptySubtitle')}</p>
       </div>
     );
   }
 
   return (
     <div className="document-list-container">
-      <h2>Your documents ({documents.length})</h2>
+      <h2>{t(language, 'docs.title')} ({documents.length})</h2>
       <div className="documents-grid">
         {documents.map((doc) => (
           <div key={doc.document_id} className="document-card">
@@ -25,19 +26,19 @@ function DocumentList({ documents, onDelete, onSelect }) {
             </div>
             <div className="card-body">
               <div className="info-item">
-                <span>Status:</span>
+                <span>{t(language, 'docs.status')}:</span>
                 <strong>
                   {doc.status === 'ready'
-                    ? 'Ready'
+                    ? t(language, 'docs.ready')
                     : doc.status === 'processing'
-                      ? 'Processing'
+                      ? t(language, 'docs.processing')
                       : doc.status === 'failed'
-                        ? 'Needs attention'
+                        ? t(language, 'docs.needsAttention')
                         : doc.status}
                 </strong>
               </div>
               <div className="info-item">
-                <span>Text size:</span>
+                <span>{t(language, 'docs.textSize')}:</span>
                 <strong>{(doc.text_length / 1024).toFixed(1)} KB</strong>
               </div>
               <div className="info-item">
@@ -50,7 +51,7 @@ function DocumentList({ documents, onDelete, onSelect }) {
                 className="btn-select"
                 onClick={() => onSelect(doc)}
               >
-                Chat with this
+                {t(language, 'docs.chatWithThis')}
               </button>
               <button
                 className="btn-delete"

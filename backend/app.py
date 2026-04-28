@@ -49,6 +49,7 @@ class QuestionRequest(BaseModel):
     question: str
     document_id: Optional[str] = None
     use_rag: bool = True
+    preferred_language: Optional[str] = None
 
 
 class QuestionResponse(BaseModel):
@@ -319,6 +320,7 @@ async def ask_question(request: QuestionRequest):
         question=request.question,
         document_id=request.document_id,
         use_rag=request.use_rag,
+        preferred_language=request.preferred_language,
     )
 
     if result.get("success"):

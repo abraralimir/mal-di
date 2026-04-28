@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Loader, Save } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 import '../styles/ConnectionsSettings.css';
+import { t, type Lang } from '../i18n';
 
 const KEEP = '__KEEP__';
 
@@ -26,7 +27,7 @@ const emptyConnector = (): ConnectorForm => ({
   bearer_token: KEEP,
 });
 
-function ConnectionsSettings({ onSaved }: { onSaved?: () => void }) {
+function ConnectionsSettings({ onSaved, language }: { onSaved?: () => void; language: Lang }) {
   const [bpm, setBpm] = useState<ConnectorForm>(emptyConnector);
   const [filenet, setFilenet] = useState<ConnectorForm>(emptyConnector);
   const [runtime, setRuntime] = useState<{ ibm_bpm: object | null; filenet: object | null } | null>(null);
@@ -83,10 +84,10 @@ function ConnectionsSettings({ onSaved }: { onSaved?: () => void }) {
       setRuntime(data.runtime);
       setBpm((prev) => ({ ...prev, password: KEEP, bearer_token: KEEP }));
       setFilenet((prev) => ({ ...prev, password: KEEP, bearer_token: KEEP }));
-      setMessage('Saved. Pools were recreated with these values.');
+      setMessage(language === 'ar' ? 'تم الحفظ. تم إعادة إنشاء التجمعات بهذه القيم.' : 'Saved. Pools were recreated with these values.');
       onSaved?.();
     } catch (e: unknown) {
-      setError('Save failed. Check values and try again.');
+      setError(language === 'ar' ? 'فشل الحفظ. تحقق من القيم وحاول مرة أخرى.' : 'Save failed. Check values and try again.');
     } finally {
       setSaving(false);
     }
@@ -213,7 +214,7 @@ function ConnectionsSettings({ onSaved }: { onSaved?: () => void }) {
   return (
     <div className="conn-root">
       <header className="conn-header">
-        <h2>Connections</h2>
+        <h2>{t(language, 'conn.title')}</h2>
         <p className="conn-lead">
           Configure HTTP connection pools for IBM BPM and FileNet (or any same-host REST root). Settings are stored on the server and applied immediately when you save.
         </p>
@@ -229,11 +230,11 @@ function ConnectionsSettings({ onSaved }: { onSaved?: () => void }) {
 
       <div className="conn-actions">
         <button type="button" className="btn-secondary" onClick={load} disabled={saving}>
-          Reload
+          {t(language, 'conn.reload')}
         </button>
         <button type="button" className="btn-primary" onClick={save} disabled={saving}>
           {saving ? <Loader className="spinner" size={18} /> : <Save size={18} />}
-          <span>Save &amp; apply pools</span>
+          <span>{t(language, 'conn.save')}</span>
         </button>
       </div>
     </div>

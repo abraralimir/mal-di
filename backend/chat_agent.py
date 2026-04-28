@@ -66,20 +66,28 @@ class ChatAgent:
         question: str,
         document_id: Optional[str] = None,
         use_rag: bool = True,
+        preferred_language: Optional[str] = None,
         max_tokens: int = 2048,
         temperature: float = 0.35,
     ) -> Dict[str, Any]:
         _ = use_rag  # API compatibility; flow is OCR → Groq only
         try:
+            pref = (preferred_language or "").strip().lower()
+            lang_hint = ""
+            if pref in {"ar", "arabic"}:
+                lang_hint = "Answer in Arabic.\n\n"
+            elif pref in {"en", "english"}:
+                lang_hint = "Answer in English.\n\n"
+
             doc_text = self.document_store.build_context(document_id=document_id)
             if doc_text.strip():
                 user_content = (
-                    "Document text:\n\n"
+                    f"{lang_hint}Document text:\n\n"
                     f"{doc_text}\n\n---\n\nQuestion: {question}\n\nAnswer clearly and concisely."
                 )
             else:
                 user_content = (
-                    f"No document text is available yet (upload a file and wait for processing). "
+                    f"{lang_hint}No document text is available yet (upload a file and wait for processing). "
                     f"Question: {question}\n\nAnswer briefly, or say you need document content."
                 )
 

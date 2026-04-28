@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Upload, Send, FileText, Link2 } from 'lucide-react';
+import { Upload, Send, FileText, Link2, Globe } from 'lucide-react';
 import DocumentUpload from './components/DocumentUpload';
 import DocumentList from './components/DocumentList';
 import ChatInterface from './components/ChatInterface';
 import ConnectionsSettings from './components/ConnectionsSettings';
 import { API_BASE_URL } from './apiConfig';
 import './styles/App.css';
+import { t } from './i18n';
 
 function App() {
   const [activeTab, setActiveTab] = useState('upload');
@@ -15,6 +16,10 @@ function App() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [error, setError] = useState('');
   const [health, setHealth] = useState(null);
+  const [language, setLanguage] = useState(() => {
+    const saved = localStorage.getItem('mal_di_lang');
+    return saved === 'ar' ? 'ar' : 'en';
+  });
 
   useEffect(() => {
     checkHealth();
@@ -23,13 +28,17 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem('mal_di_lang', language);
+  }, [language]);
+
   const checkHealth = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/health`);
       setHealth(response.data);
     } catch (err) {
       console.error('Health check failed:', err);
-      setError('Unable to reach the service. If it was just started, wait a few seconds and refresh.');
+      setError(t(language, 'error.unreachable'));
     }
   };
 
@@ -59,9 +68,9 @@ function App() {
     } catch (err) {
       const code = err.response?.status;
       if (code === 413) {
-        setError('That file is too large. Try a smaller document.');
+        setError(t(language, 'error.tooLarge'));
       } else {
-        setError('We could not upload that file. Please try again.');
+        setError(t(language, 'error.uploadFailed'));
       }
     } finally {
       setLoading(false);
@@ -76,24 +85,37 @@ function App() {
       loadDocuments();
       if (selectedDoc === docId) setSelectedDoc(null);
     } catch (err) {
-      setError('Failed to delete document');
+      setError(t(language, 'error.deleteFailed'));
     }
   };
 
   return (
-    <div className="app">
+    <div className={`app ${language === 'ar' ? 'rtl' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'} lang={language}>
       <header className="app-header">
         <div className="header-content">
           <h1>MAL Document Intelligence System</h1>
         </div>
-        {health?.models_loaded && (
-          <div className="health-indicator">
-            <span className={(health.models_loaded.qa || health.models_loaded.chat) ? 'status-online' : 'status-offline'}>
-              ●
-            </span>
-            {(health.models_loaded.qa || health.models_loaded.chat) ? 'Ready' : 'Starting…'}
+        <div className="header-actions">
+          <div className="lang-switch" title={t(language, 'lang.title')}>
+            <Globe size={18} />
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value === 'ar' ? 'ar' : 'en')}
+              aria-label={t(language, 'lang.title')}
+            >
+              <option value="en">English</option>
+              <option value="ar">العربية</option>
+            </select>
           </div>
-        )}
+          {health?.models_loaded && (
+            <div className="health-indicator">
+              <span className={(health.models_loaded.qa || health.models_loaded.chat) ? 'status-online' : 'status-offline'}>
+                ●
+              </span>
+              {(health.models_loaded.qa || health.models_loaded.chat) ? t(language, 'status.ready') : t(language, 'status.starting')}
+            </div>
+          )}
+        </div>
       </header>
 
       {error && (
@@ -110,14 +132,14 @@ function App() {
             onClick={() => setActiveTab('upload')}
           >
             <Upload size={20} />
-            <span>Upload</span>
+            <span>{t(language, 'nav.upload')}</span>
           </button>
           <button
             className={`nav-button ${activeTab === 'documents' ? 'active' : ''}`}
             onClick={() => setActiveTab('documents')}
           >
             <FileText size={20} />
-            <span>Documents</span>
+            <span>{t(language, 'nav.documents')}</span>
             {documents.length > 0 && (
               <span className="badge">{documents.length}</span>
             )}
@@ -127,14 +149,14 @@ function App() {
             onClick={() => setActiveTab('chat')}
           >
             <Send size={20} />
-            <span>Q&A</span>
+            <span>{t(language, 'nav.qa')}</span>
           </button>
           <button
             className={`nav-button ${activeTab === 'connections' ? 'active' : ''}`}
             onClick={() => setActiveTab('connections')}
           >
             <Link2 size={20} />
-            <span>Connections</span>
+            <span>{t(language, 'nav.connections')}</span>
           </button>
         </nav>
 
@@ -143,6 +165,7 @@ function App() {
             <DocumentUpload 
               onUpload={handleUpload} 
               loading={loading}
+              language={language}
             />
           )}
 
@@ -154,6 +177,7 @@ function App() {
                 setSelectedDoc(doc.document_id);
                 setActiveTab('chat');
               }}
+              language={language}
             />
           )}
 
@@ -162,6 +186,7 @@ function App() {
               selectedDoc={selectedDoc}
               documents={documents}
               onSelectDoc={setSelectedDoc}
+              language={language}
             />
           )}
 
@@ -171,6 +196,7 @@ function App() {
                 checkHealth();
                 loadDocuments();
               }}
+              language={language}
             />
           )}
         </main>
