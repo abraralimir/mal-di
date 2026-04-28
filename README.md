@@ -135,4 +135,24 @@ Response matches `POST /upload`. Text extraction runs in the background as usual
 - **Port already in use** — Stop other apps on ports 8000 / 3000 or change `API_PORT` / Vite port in `frontend/vite.config.ts`.
 - **Blank UI** — Ensure `npm run dev` is running and open **http://localhost:3000**.
 
+---
+
+## Deploy the web UI on Vercel (recommended)
+
+You can deploy the **frontend only** to Vercel without changing backend accuracy/functionality. Host the API separately (any VM/container host) and point the UI to it.
+
+### Vercel settings
+
+- **Project root directory**: `frontend`
+- **Build command**: `npm run build`
+- **Output directory**: `dist`
+
+### Environment variables (Vercel)
+
+Set:
+
+- `VITE_API_URL`: your deployed backend URL (example: `https://api.yourdomain.com`)
+
+The UI will call the backend directly using `VITE_API_URL`. (The backend already allows CORS.)
+
 # mal-di
