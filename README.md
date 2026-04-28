@@ -161,10 +161,10 @@ Create a new **Web Service** in Render:
 
 - **Repository**: this repo
 - **Root Directory**: `backend`
-- **Build Command**: `pip install -r requirements.txt`
+- **Build Command**: `python -m pip install -U pip setuptools wheel && pip install -r requirements.txt`
 - **Start Command**: `uvicorn app:app --host 0.0.0.0 --port $PORT`
 
-This repo includes `.python-version` to avoid Render defaulting to Python 3.14.
+This repo includes `.python-version` to avoid Render defaulting to Python 3.14. If Render still picks the wrong runtime, set **`PYTHON_VERSION=3.12.6`** in the service environment.
 
 Set Render environment variables:
 
