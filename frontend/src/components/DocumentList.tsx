@@ -1,9 +1,21 @@
 import React from 'react';
-import { Trash2, FileText, Calendar } from 'lucide-react';
+import { Trash2, FileText, Calendar, FileSearch } from 'lucide-react';
 import '../styles/DocumentList.css';
 import { t, type Lang } from '../i18n';
 
-function DocumentList({ documents, onDelete, onSelect, language }: { documents: any[]; onDelete: (id: string) => void; onSelect: (doc: any) => void; language: Lang }) {
+function DocumentList({
+  documents,
+  onDelete,
+  onSelect,
+  onPreview,
+  language,
+}: {
+  documents: any[];
+  onDelete: (id: string) => void;
+  onSelect: (doc: any) => void;
+  onPreview: (doc: any) => void;
+  language: Lang;
+}) {
   if (documents.length === 0) {
     return (
       <div className="document-list-empty">
@@ -48,12 +60,22 @@ function DocumentList({ documents, onDelete, onSelect, language }: { documents: 
             </div>
             <div className="card-actions">
               <button
+                type="button"
+                className="btn-preview"
+                onClick={() => onPreview(doc)}
+              >
+                <FileSearch size={16} />
+                {t(language, 'docs.preview')}
+              </button>
+              <button
+                type="button"
                 className="btn-select"
                 onClick={() => onSelect(doc)}
               >
                 {t(language, 'docs.chatWithThis')}
               </button>
               <button
+                type="button"
                 className="btn-delete"
                 onClick={() => onDelete(doc.document_id)}
               >

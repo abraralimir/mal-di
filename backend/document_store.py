@@ -1,4 +1,4 @@
-"""In-memory store: document_id → OCR text (no vector DB)."""
+"""In-memory store: document_id → OCR text, layout, LLM analysis (no vector DB)."""
 from __future__ import annotations
 
 import threading
@@ -19,28 +19,54 @@ class DocumentStore:
                 "name": name,
                 "file_path": file_path,
                 "ocr_text": "",
+                "layout_pages": [],
+                "analysis": None,
                 "status": "processing",
                 "added_at": datetime.now().isoformat(),
             }
 
-    def set_ocr_result(self, document_id: str, ocr_text: str, success: bool, error: str = "") -> None:
+    def set_ocr_result(
+        self,
+        document_id: str,
+        ocr_text: str,
+        success: bool,
+        error: str = "",
+        layout_pages: Optional[List[dict]] = None,
+    ) -> None:
         with self._lock:
             if document_id not in self._docs:
                 return
             if success:
                 self._docs[document_id]["ocr_text"] = ocr_text
-                self._docs[document_id]["status"] = "ready"
+                self._docs[document_id]["layout_pages"] = list(layout_pages or [])
+                self._docs[document_id]["status"] = "processing"
             else:
                 self._docs[document_id]["status"] = "failed"
                 self._docs[document_id]["error"] = error or "Text extraction failed"
+                self._docs[document_id]["layout_pages"] = []
+
+    def set_analysis(self, document_id: str, analysis: Optional[dict]) -> None:
+        with self._lock:
+            if document_id not in self._docs:
+                return
+            self._docs[document_id]["analysis"] = analysis
+            if self._docs[document_id].get("status") != "failed":
+                self._docs[document_id]["status"] = "ready"
 
     def get_ocr_text(self, document_id: str) -> Optional[str]:
         with self._lock:
             d = self._docs.get(document_id)
-            if not d or d.get("status") != "ready":
+            if not d or d.get("status") == "failed":
                 return None
             t = (d.get("ocr_text") or "").strip()
             return t or None
+
+    def get_document(self, document_id: str) -> Optional[dict]:
+        with self._lock:
+            d = self._docs.get(document_id)
+            if not d:
+                return None
+            return dict(d)
 
     def build_context(
         self,
@@ -52,14 +78,19 @@ class DocumentStore:
             parts: List[str] = []
             if document_id:
                 d = self._docs.get(document_id)
-                if d and d.get("status") == "ready" and (d.get("ocr_text") or "").strip():
+                if (
+                    d
+                    and d.get("status") != "failed"
+                    and (d.get("ocr_text") or "").strip()
+                    and d.get("status") in ("ready", "processing")
+                ):
                     parts.append(f"### File: {d['name']}\n{d['ocr_text'].strip()}")
             else:
                 for d in self._docs.values():
-                    if d.get("status") != "ready":
+                    if d.get("status") == "failed":
                         continue
                     txt = (d.get("ocr_text") or "").strip()
-                    if not txt:
+                    if not txt or d.get("status") not in ("ready", "processing"):
                         continue
                     parts.append(f"### File: {d['name']}\n{txt}")
             blob = "\n\n---\n\n".join(parts)
@@ -72,6 +103,8 @@ class DocumentStore:
             out: List[dict] = []
             for doc_id, d in self._docs.items():
                 text = d.get("ocr_text") or ""
+                layout = d.get("layout_pages") or []
+                block_count = sum(len(p.get("blocks") or []) for p in layout)
                 out.append(
                     {
                         "document_id": doc_id,
@@ -80,6 +113,8 @@ class DocumentStore:
                         "text_length": len(text),
                         "added_at": d.get("added_at", ""),
                         "status": d.get("status", "unknown"),
+                        "layout_blocks": block_count,
+                        "has_analysis": d.get("analysis") is not None,
                     }
                 )
             return out

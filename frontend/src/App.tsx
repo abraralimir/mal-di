@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Upload, Send, FileText, Globe } from 'lucide-react';
+import { Upload, Send, FileText, Globe, FileSearch } from 'lucide-react';
 import DocumentUpload from './components/DocumentUpload';
 import DocumentList from './components/DocumentList';
+import DocumentPreview from './components/DocumentPreview';
 import ChatInterface from './components/ChatInterface';
 import { API_BASE_URL } from './apiConfig';
 import './styles/App.css';
@@ -61,8 +62,8 @@ function App() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      setActiveTab('chat');
       setSelectedDoc(response.data.document_id);
+      setActiveTab('preview');
       loadDocuments();
     } catch (err) {
       const code = err.response?.status;
@@ -134,6 +135,13 @@ function App() {
             <span>{t(language, 'nav.upload')}</span>
           </button>
           <button
+            className={`nav-button ${activeTab === 'preview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('preview')}
+          >
+            <FileSearch size={20} />
+            <span>{t(language, 'nav.preview')}</span>
+          </button>
+          <button
             className={`nav-button ${activeTab === 'documents' ? 'active' : ''}`}
             onClick={() => setActiveTab('documents')}
           >
@@ -169,7 +177,20 @@ function App() {
                 setSelectedDoc(doc.document_id);
                 setActiveTab('chat');
               }}
+              onPreview={(doc) => {
+                setSelectedDoc(doc.document_id);
+                setActiveTab('preview');
+              }}
               language={language}
+            />
+          )}
+
+          {activeTab === 'preview' && (
+            <DocumentPreview
+              documentId={selectedDoc}
+              language={language}
+              onOpenChat={() => setActiveTab('chat')}
+              onRefreshList={loadDocuments}
             />
           )}
 

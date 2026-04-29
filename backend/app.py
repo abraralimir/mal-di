@@ -5,13 +5,14 @@ import warnings
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 warnings.filterwarnings("ignore", category=UserWarning, module="requests")
 
 import requests
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, model_validator
 
 from chat_agent import ChatAgent
@@ -297,8 +298,23 @@ async def process_document_async(doc_id: str, file_path: str, filename: str):
         ocr_result = ocr_pipeline.ocr_document(file_path)
         if ocr_result.get("success"):
             text = ocr_result.get("full_text") or ""
-            document_store.set_ocr_result(doc_id, text, True)
-            logger.info("Extraction done %s chars", len(text))
+            pages = ocr_result.get("pages") or []
+            document_store.set_ocr_result(doc_id, text, True, layout_pages=pages)
+            logger.info("Extraction done %s chars, %s pages layout", len(text), len(pages))
+            analysis: Dict[str, Any] = {}
+            if chat_agent:
+                try:
+                    analysis = chat_agent.analyze_document_structure(text)
+                except Exception as ae:
+                    logger.warning("LLM document analysis failed: %s", ae)
+                    analysis = {
+                        "document_type": "Unknown",
+                        "classification_summary": "",
+                        "fields": [],
+                        "entities": [],
+                        "error": str(ae),
+                    }
+            document_store.set_analysis(doc_id, analysis)
         else:
             document_store.set_ocr_result(
                 doc_id,
@@ -339,6 +355,68 @@ async def list_documents():
     if not document_store:
         raise HTTPException(status_code=503, detail="Store not ready")
     return DocumentList(documents=document_store.list_documents())
+
+
+def _mime_for_filename(name: str) -> str:
+    ext = Path(name).suffix.lower()
+    return {
+        ".pdf": "application/pdf",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".bmp": "image/bmp",
+        ".tif": "image/tiff",
+        ".tiff": "image/tiff",
+    }.get(ext, "application/octet-stream")
+
+
+@app.get("/documents/{document_id}")
+async def get_document_detail(
+    document_id: str,
+    include_ocr_text: bool = False,
+):
+    if not document_store:
+        raise HTTPException(status_code=503, detail="Store not ready")
+    d = document_store.get_document(document_id)
+    if not d:
+        raise HTTPException(status_code=404, detail="Document not found")
+    out: Dict[str, Any] = {
+        "document_id": d["document_id"],
+        "name": d["name"],
+        "status": d.get("status", "unknown"),
+        "added_at": d.get("added_at", ""),
+        "layout_pages": d.get("layout_pages") or [],
+        "analysis": d.get("analysis"),
+        "error": d.get("error"),
+        "text_length": len((d.get("ocr_text") or "")),
+    }
+    if include_ocr_text:
+        out["ocr_text"] = d.get("ocr_text") or ""
+    return out
+
+
+@app.get("/documents/{document_id}/file")
+async def get_document_file(document_id: str):
+    if not document_store:
+        raise HTTPException(status_code=503, detail="Store not ready")
+    d = document_store.get_document(document_id)
+    if not d:
+        raise HTTPException(status_code=404, detail="Document not found")
+    raw_path = Path(d.get("file_path") or "")
+    if not raw_path.is_file():
+        raise HTTPException(status_code=404, detail="File not on disk")
+    try:
+        root = settings.UPLOADS_DIR.resolve()
+        resolved = raw_path.resolve()
+        resolved.relative_to(root)
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail="Invalid file path") from e
+    return FileResponse(
+        path=str(resolved),
+        media_type=_mime_for_filename(d.get("name", "")),
+        filename=d.get("name") or "document",
+    )
 
 
 @app.delete("/documents/{document_id}")
